@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/HKCommonLibrary.iml" filepath="$PROJECT_DIR$/HKCommonLibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hkcommonlibrary/hkcommonlibrary.iml" filepath="$PROJECT_DIR$/hkcommonlibrary/hkcommonlibrary.iml" />
+    </modules>
+  </component>
+</project>
