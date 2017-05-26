@@ -1,0 +1,47 @@
+// shared settings for all project
+
+def versions = [
+        support:"25.3.1",
+        retrofit:"2.1.0",
+        okhttp:"3.4.1",
+        stetho:"1.5.0",
+]
+
+ext.libraries = [
+        "com.android.support:appcompat-v7:$versions.support",
+        "com.android.support:support-v4:$versions.support",
+        "com.android.support:recyclerview-v7:$versions.support",
+        "com.android.support:design:$versions.support",
+
+        "com.squareup.okhttp3:okhttp:$versions.okhttp",
+        "com.squareup.okhttp3:okhttp-urlconnection:$versions.okhttp",
+        "com.squareup.okhttp3:logging-interceptor:$versions.okhttp",
+        "com.squareup.retrofit2:retrofit:$versions.retrofit",
+        "com.squareup.retrofit2:converter-gson:$versions.retrofit",
+
+        "com.facebook.stetho:stetho:$versions.stetho",
+        "com.facebook.stetho:stetho-okhttp3:$versions.stetho",
+
+        // buildscript
+        'com.android.tools.build:gradle:2.3.2',
+
+        // test
+        'junit:junit:4.12',
+        'com.android.support.test.espresso:espresso-core:2.2.2',
+]
+
+ext.shared = [
+        buildToolVersion : "25.0.2",
+        compileSdkVersion: 25,
+        minSdkVersion    : 16,
+        targetSdkVersion : 25,
+]
+
+ext.defaultGroup = {project->
+    compile project.fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7'
+    testCompile 'junit:junit'
+}
