@@ -4,7 +4,7 @@ buildscript {
     apply from: "dependencies-resolver.gradle"
     apply from: "shared-settings.gradle"
 
-    resolveDependencyVersion buildscript:buildscript, strictMode:true
+    resolveDependencyVersion buildscript:buildscript, strictMode:false
 
     repositories {
         jcenter()
@@ -18,7 +18,7 @@ buildscript {
 }
 
 allprojects {
-    resolveDependencyVersion project:project, strictMode:true
+    resolveDependencyVersion project:project, strictMode:false
     repositories {
         jcenter()
     }
