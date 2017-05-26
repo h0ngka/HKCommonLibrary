@@ -11,3 +11,6 @@ Stetho
 
 YouTube API
 - https://developers.google.com/youtube/v3/
+
+Gradle 정리
+https://github.com/b1uec0in/DependencyVersionResolver
