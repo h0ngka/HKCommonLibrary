@@ -3,6 +3,7 @@
 buildscript {
     apply from: "dependencies-resolver.gradle"
     apply from: "shared-settings.gradle"
+
     resolveDependencyVersion buildscript:buildscript, strictMode:true
 
     repositories {
