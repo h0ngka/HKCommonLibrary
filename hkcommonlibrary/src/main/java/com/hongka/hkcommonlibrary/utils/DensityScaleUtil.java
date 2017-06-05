@@ -51,4 +51,16 @@ public class DensityScaleUtil {
 		return display.getWidth();
 		
 	}
+
+	/**
+	 * 현재 디스플레이의 높이를 반환
+	 * @param context
+	 * @return
+	 */
+	public static int getDisplayHeight(Context context) {
+		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		Display display = wm.getDefaultDisplay();
+		return display.getHeight();
+
+	}
 }

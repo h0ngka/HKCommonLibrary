@@ -18,7 +18,7 @@ buildscript {
 }
 
 allprojects {
-    resolveDependencyVersion project:project, strictMode:false
+    resolveDependencyVersion project:project, strictMode:false // jitpack에서 빌드할때 오류 나서 false로 해야 함.
     repositories {
         jcenter()
     }

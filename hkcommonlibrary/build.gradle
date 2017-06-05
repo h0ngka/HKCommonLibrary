@@ -21,6 +21,10 @@ android {
     }
 }
 
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
 dependencies {
     compileDefault project
     compile files('libs/YouTubeAndroidPlayerApi.jar')
@@ -33,4 +37,7 @@ dependencies {
 
     compile 'com.facebook.stetho:stetho'
     compile 'com.facebook.stetho:stetho-okhttp3'
+
+    compile 'com.google.android.exoplayer:exoplayer'
+    compile 'com.github.feeeei:CircleSeekbar'
 }

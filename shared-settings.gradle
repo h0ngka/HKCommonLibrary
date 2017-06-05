@@ -5,6 +5,7 @@ def versions = [
         retrofit:"2.1.0",
         okhttp:"3.4.1",
         stetho:"1.5.0",
+        exoplayer:"r2.4.1",
 ]
 
 ext.libraries = [
@@ -21,6 +22,8 @@ ext.libraries = [
 
         "com.facebook.stetho:stetho:$versions.stetho",
         "com.facebook.stetho:stetho-okhttp3:$versions.stetho",
+        "com.google.android.exoplayer:exoplayer:$versions.exoplayer",
+        "com.github.feeeei:CircleSeekbar:v1.1.2",
 
         // buildscript
         'com.android.tools.build:gradle:2.3.2',
