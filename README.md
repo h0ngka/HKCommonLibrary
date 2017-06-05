@@ -14,3 +14,11 @@ YouTube API
 
 Gradle 정리
 - https://github.com/b1uec0in/DependencyVersionResolver
+
+ExoPlayer
+- https://github.com/google/ExoPlayer
+- https://google.github.io/ExoPlayer
+- https://codelabs.developers.google.com/codelabs/exoplayer-intro/#0
+
+기타 dependency
+- https://github.com/feeeei/CircleSeekbar
