@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2016 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.hongka.hkcommonlibrary.exoplayer2;
 
 import android.app.Activity;
@@ -90,12 +75,7 @@ import java.util.UUID;
 
 import io.feeeei.circleseekbar.CircleSeekBar;
 
-/**
- * An activity that plays media using {@link SimpleExoPlayer}.
- */
 public class PlayerActivity extends Activity implements OnClickListener, ExoPlayer.EventListener, PlaybackControlView.VisibilityListener, View.OnTouchListener {
-
-    private static final String TAG = PlayerActivity.class.getSimpleName();
 
     public static final String DRM_SCHEME_UUID_EXTRA = "drm_scheme_uuid";
     public static final String DRM_LICENSE_URL = "drm_license_url";
@@ -107,6 +87,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
     public static final String URI_LIST_EXTRA = "uri_list";
     public static final String EXTENSION_LIST_EXTRA = "extension_list";
 
+    private static final String TAG = PlayerActivity.class.getSimpleName();
     private static final DefaultBandwidthMeter BANDWIDTH_METER = new DefaultBandwidthMeter();
     private static final CookieManager DEFAULT_COOKIE_MANAGER;
 
@@ -121,7 +102,8 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
     private LinearLayout debugRootView;
     private TextView debugTextView;
     private Button retryButton;
-    private ImageButton screenControlButton;
+    private ImageButton screenFullButton;
+    private ImageButton screenLockButton;
     private RelativeLayout seekbarLayout;
     private CircleSeekBar circleSeekBar;
     private TextView seekBarValueTextView;
@@ -138,9 +120,8 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
     private int resumeWindow;
     private long resumePosition;
     private boolean isFullScreen;
+    private boolean isLockScreen;
     private GestureDetector gestureDetector;
-
-    // Activity lifecycle
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -160,8 +141,10 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
         debugTextView = (TextView) findViewById(R.id.debug_text_view);
         retryButton = (Button) findViewById(R.id.retry_button);
         retryButton.setOnClickListener(this);
-        screenControlButton = (ImageButton) findViewById(R.id.screen_control_button);
-        screenControlButton.setOnClickListener(this);
+        screenFullButton = (ImageButton) findViewById(R.id.screen_full_button);
+        screenFullButton.setOnClickListener(this);
+        screenLockButton = (ImageButton) findViewById(R.id.screen_lock_button);
+        screenLockButton.setOnClickListener(this);
         seekbarLayout = (RelativeLayout) findViewById(R.id.seek_bar_layout);
         circleSeekBar = (CircleSeekBar) findViewById(R.id.circle_seek_bar);
         seekBarValueTextView = (TextView) findViewById(R.id.seek_bar_value_text_view);
@@ -260,6 +243,11 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
                 prevRy = 0;
 
                 hideCircleSeekBar();
+            } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                // 화면이 잠겼을때만 작동 함.
+                if (isLockScreen) {
+                    showLockButton();
+                }
             }
         }
         return false;
@@ -296,7 +284,25 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
                 public void run() {
                     seekbarLayout.setVisibility(View.GONE);
                 }
-            }, 1000);
+            }, 2000);
+        }
+    }
+
+    private boolean isExistLockScreenRunnable;
+    private void showLockButton() {
+        screenLockButton.setVisibility(View.VISIBLE);
+        if (screenLockButton.getVisibility() == View.VISIBLE
+                && isExistLockScreenRunnable == false) {
+            isExistLockScreenRunnable = true;
+            screenLockButton.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    isExistLockScreenRunnable = false;
+                    if (isLockScreen) {
+                        screenLockButton.setVisibility(View.GONE);
+                    }
+                }
+            }, 3000);
         }
     }
 
@@ -307,7 +313,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
     }
 
     private void updateBrightness(int brightnessValue) {
-        float screenBrightness = brightnessValue / 10;
+        float screenBrightness = brightnessValue / 10f;
 
         if (screenBrightness == 0) {
             screenBrightness = 0.1f;
@@ -393,8 +399,6 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
         }
     }
 
-    // Activity input
-
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         int action = event.getAction();
@@ -413,14 +417,18 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
                 updateCircleSeekBar("VOLUME", currentVolumeValue);
                 hideCircleSeekBar();
                 return true;
+            } else if (event.getKeyCode() == KeyEvent.KEYCODE_BACK
+                    || event.getKeyCode() == KeyEvent.KEYCODE_MENU
+                    || event.getKeyCode() == KeyEvent.KEYCODE_HOME) {
+                if (isLockScreen) {
+                    return true;
+                }
             }
         }
 
         simpleExoPlayerView.showController();
         return super.dispatchKeyEvent(event) || simpleExoPlayerView.dispatchMediaKeyEvent(event);
     }
-
-    // OnClickListener methods
 
     @Override
     public void onClick(View view) {
@@ -432,14 +440,16 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
                 trackSelectionHelper.showSelectionDialog(this, ((Button) view).getText(),
                         trackSelector.getCurrentMappedTrackInfo(), (int) view.getTag());
             }
-        } else if (view == screenControlButton) {
+        } else if (view == screenFullButton) {
             doLayout(!isFullScreen);
+        } else if (view == screenLockButton) {
+            doScreenLock(!isLockScreen);
         }
     }
 
     private void doLayout(final boolean isFullScreen) {
         this.isFullScreen = isFullScreen;
-        screenControlButton.setSelected(!isFullScreen);
+        screenFullButton.setSelected(isFullScreen);
 
         setRequestedOrientation(isFullScreen ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         if (isFullScreen) {
@@ -452,15 +462,28 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
         }
     }
 
+    private void doScreenLock(boolean isLockScreen) {
+        this.isLockScreen = isLockScreen;
+
+        if (this.isLockScreen) {
+            screenLockButton.setImageResource(R.drawable.exoplayer_selector_btn_lock);
+            simpleExoPlayerView.setUseController(false);
+            simpleExoPlayerView.hideController();
+        } else {
+            screenLockButton.setImageResource(R.drawable.exoplayer_selector_btn_unlock);
+            simpleExoPlayerView.setUseController(true);
+            simpleExoPlayerView.showController();
+        }
+    }
+
     // PlaybackControlView.VisibilityListener implementation
     @Override
     public void onVisibilityChange(int visibility) {
         debugRootView.setVisibility(visibility);
         debugTextView.setVisibility(visibility);
-        screenControlButton.setVisibility(visibility);
+        screenFullButton.setVisibility(visibility);
+        screenLockButton.setVisibility(visibility);
     }
-
-    // Internal methods
 
     private void initializePlayer() {
         Intent intent = getIntent();
@@ -577,8 +600,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
         }
     }
 
-    private DrmSessionManager<FrameworkMediaCrypto> buildDrmSessionManager(UUID uuid,
-                                                                           String licenseUrl, String[] keyRequestPropertiesArray) throws UnsupportedDrmException {
+    private DrmSessionManager<FrameworkMediaCrypto> buildDrmSessionManager(UUID uuid, String licenseUrl, String[] keyRequestPropertiesArray) throws UnsupportedDrmException {
         if (Util.SDK_INT < 18) {
             return null;
         }

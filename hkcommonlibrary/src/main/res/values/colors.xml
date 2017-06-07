@@ -3,4 +3,16 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="alpha_70percent_black_color">#B3000000</color><!-- alpha 70% -->
+    <color name="thumbnail_theme_tint_color">#96000000</color> <!-- alpha 60% -->
+    <color name="banner_theme_tint_color">#80000000</color> <!-- alpha 50% -->
+    <color name="alpha_sixty_black_color">#99000000</color> <!-- alpha 60% -->
+    <color name="alpha_half_black_color">#80000000</color> <!-- alpha 50% -->
+    <color name="alpha_fourty_black_color">#66000000</color> <!-- alpha 40% -->
+    <color name="alpha_thirty_black_color">#4d000000</color> <!-- alpha 30% -->
+    <color name="alpha_twenty_black_color">#33000000</color> <!-- alpha 20% -->
+    <color name="alpha_ten_black_color">#1a000000</color> <!-- alpha 10% -->
+    <color name="alpha_ten_white_color">#1affffff</color> <!-- alpha 10% -->
+
 </resources>

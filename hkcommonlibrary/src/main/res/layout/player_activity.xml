@@ -60,9 +60,9 @@
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
             android:padding="8dp"
-            app:wheel_reached_color="@android:color/holo_orange_light"
+            app:wheel_reached_color="@android:color/white"
             app:wheel_reached_width="16dp"
-            app:wheel_unreached_color="@android:color/darker_gray"
+            app:wheel_unreached_color="@color/alpha_sixty_black_color"
             app:wheel_unreached_width="18dp"
             app:wheel_pointer_color="@android:color/holo_red_light"
             app:wheel_pointer_radius="6dp"
@@ -82,13 +82,21 @@
 
 
     <ImageButton
-        android:id="@+id/screen_control_button"
+        android:id="@+id/screen_full_button"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="40dp"
         android:layout_marginRight="10dp"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:background="@drawable/exoplayer_screen_button"/>
+        android:background="@drawable/exoplayer_screen_full_button"/>
+
+    <ImageButton
+        android:id="@+id/screen_lock_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/exoplayer_selector_btn_unlock"
+        android:background="@null"/>
 
 </RelativeLayout>
