@@ -24,6 +24,7 @@ ext.libraries = [
         "com.facebook.stetho:stetho-okhttp3:$versions.stetho",
         "com.google.android.exoplayer:exoplayer:$versions.exoplayer",
         "com.github.feeeei:CircleSeekbar:v1.1.2",
+        "com.github.HaarigerHarald:android-youtubeExtractor:v1.6.0",
 
         // buildscript
         'com.android.tools.build:gradle:2.3.2',

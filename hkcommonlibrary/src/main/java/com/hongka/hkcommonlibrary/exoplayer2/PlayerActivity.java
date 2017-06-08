@@ -7,11 +7,13 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -67,15 +69,34 @@ import com.google.android.exoplayer2.util.Util;
 import com.hongka.hkcommonlibrary.HKApplication;
 import com.hongka.hkcommonlibrary.R;
 import com.hongka.hkcommonlibrary.utils.DensityScaleUtil;
+import com.hongka.hkcommonlibrary.utils.YouTubeLink;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
+import at.huber.youtubeExtractor.VideoMeta;
+import at.huber.youtubeExtractor.YouTubeExtractor;
+import at.huber.youtubeExtractor.YtFile;
 import io.feeeei.circleseekbar.CircleSeekBar;
 
 public class PlayerActivity extends Activity implements OnClickListener, ExoPlayer.EventListener, PlaybackControlView.VisibilityListener, View.OnTouchListener {
+
+    public static Intent makeIntent(Context context, String playUrl) {
+        Intent intent = new Intent(context, PlayerActivity.class);
+        intent.setData(Uri.parse(playUrl));
+        intent.setAction(PlayerActivity.ACTION_VIEW);
+        return intent;
+    }
+
+    public static Intent makeIntent(Context context, String[] playUrls) {
+        Intent intent = new Intent(context, PlayerActivity.class);
+        intent.putExtra(PlayerActivity.URI_LIST_EXTRA, playUrls);
+        intent.setAction(PlayerActivity.ACTION_VIEW_LIST);
+        return intent;
+    }
 
     public static final String DRM_SCHEME_UUID_EXTRA = "drm_scheme_uuid";
     public static final String DRM_LICENSE_URL = "drm_license_url";
@@ -167,6 +188,15 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
                 return true;
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mAsyncTask != null) {
+            mAsyncTask.cancel(true);
+            mAsyncTask = null;
+        }
     }
 
     private final float MOVE_GAP = 20.0f;
@@ -485,6 +515,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
         screenLockButton.setVisibility(visibility);
     }
 
+    private AsyncTask<Void, Void, Void> mAsyncTask;
     private void initializePlayer() {
         Intent intent = getIntent();
         boolean needNewPlayer = player == null;
@@ -539,43 +570,105 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
             debugViewHelper.start();
         }
         if (needNewPlayer || needRetrySource) {
-            String action = intent.getAction();
-            Uri[] uris;
-            String[] extensions;
-            if (ACTION_VIEW.equals(action)) {
-                uris = new Uri[]{intent.getData()};
-                extensions = new String[]{intent.getStringExtra(EXTENSION_EXTRA)};
-            } else if (ACTION_VIEW_LIST.equals(action)) {
-                String[] uriStrings = intent.getStringArrayExtra(URI_LIST_EXTRA);
-                uris = new Uri[uriStrings.length];
-                for (int i = 0; i < uriStrings.length; i++) {
-                    uris[i] = Uri.parse(uriStrings[i]);
+            if (mAsyncTask != null) {
+                mAsyncTask.cancel(true);
+                mAsyncTask = null;
+            }
+
+            mAsyncTask = new AsyncTask<Void, Void, Void>() {
+
+                private Intent intent;
+                private Uri[] uris;
+                private String[] extensions;
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    intent = getIntent();
+                    String action = intent.getAction();
+
+                    if (ACTION_VIEW.equals(action)) {
+                        uris = new Uri[]{intent.getData()};
+                        extensions = new String[]{intent.getStringExtra(EXTENSION_EXTRA)};
+                    } else if (ACTION_VIEW_LIST.equals(action)) {
+                        String[] uriStrings = intent.getStringArrayExtra(URI_LIST_EXTRA);
+                        uris = new Uri[uriStrings.length];
+                        for (int i = 0; i < uriStrings.length; i++) {
+                            uris[i] = Uri.parse(uriStrings[i]);
+                        }
+                        extensions = intent.getStringArrayExtra(EXTENSION_LIST_EXTRA);
+                        if (extensions == null) {
+                            extensions = new String[uriStrings.length];
+                        }
+                    } else {
+                        showToast(getString(R.string.unexpected_intent_action, action));
+                    }
                 }
-                extensions = intent.getStringArrayExtra(EXTENSION_LIST_EXTRA);
-                if (extensions == null) {
-                    extensions = new String[uriStrings.length];
+
+                @Override
+                protected Void doInBackground(Void... params) {
+                    final CountDownLatch countDownLatch = new CountDownLatch(uris.length);
+                    for (int i=0; i<uris.length; i++) {
+                        final int index = i;
+                        if (YouTubeLink.isYoutubeLinkUrl(uris[i].toString())) {
+                            new YouTubeExtractor(PlayerActivity.this) {
+                                @Override
+                                protected void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta videoMeta) {
+                                    String playUrl = null;
+                                    for (int j = 0, itag; j < ytFiles.size(); j++) {
+                                        itag = ytFiles.keyAt(j);
+                                        YtFile ytFile = ytFiles.get(itag);
+
+                                        if ((ytFile.getFormat().getHeight() == -1 || ytFile.getFormat().getHeight() >= 360)
+                                                && ytFile.getFormat().getExt().equals("mp4")
+                                                && !ytFile.getFormat().isDashContainer()) {
+                                            playUrl = ytFile.getUrl();
+                                        }
+                                    }
+                                    uris[index] = Uri.parse(playUrl);
+                                    countDownLatch.countDown();
+                                }
+                            }.extract(uris[i].toString(), false, false);
+                        } else {
+                            countDownLatch.countDown();
+                        }
+                    }
+
+                    try {
+                        countDownLatch.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    return null;
                 }
-            } else {
-                showToast(getString(R.string.unexpected_intent_action, action));
-                return;
-            }
-            if (Util.maybeRequestReadExternalStoragePermission(this, uris)) {
-                // The player will be reinitialized if the permission is granted.
-                return;
-            }
-            MediaSource[] mediaSources = new MediaSource[uris.length];
-            for (int i = 0; i < uris.length; i++) {
-                mediaSources[i] = buildMediaSource(uris[i], extensions[i]);
-            }
-            MediaSource mediaSource = mediaSources.length == 1 ? mediaSources[0]
-                    : new ConcatenatingMediaSource(mediaSources);
-            boolean haveResumePosition = resumeWindow != C.INDEX_UNSET;
-            if (haveResumePosition) {
-                player.seekTo(resumeWindow, resumePosition);
-            }
-            player.prepare(mediaSource, !haveResumePosition, false);
-            needRetrySource = false;
-            updateButtonVisibilities();
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+
+                    if (Util.maybeRequestReadExternalStoragePermission(PlayerActivity.this, uris)) {
+                        // The player will be reinitialized if the permission is granted.
+                        return;
+                    }
+
+                    MediaSource[] mediaSources = new MediaSource[uris.length];
+                    for (int i = 0; i < uris.length; i++) {
+                        mediaSources[i] = buildMediaSource(uris[i], extensions[i]);
+                    }
+                    MediaSource mediaSource = mediaSources.length == 1 ? mediaSources[0]
+                            : new ConcatenatingMediaSource(mediaSources);
+                    boolean haveResumePosition = resumeWindow != C.INDEX_UNSET;
+                    if (haveResumePosition) {
+                        player.seekTo(resumeWindow, resumePosition);
+                    }
+                    player.prepare(mediaSource, !haveResumePosition, false);
+                    needRetrySource = false;
+                    updateButtonVisibilities();
+                }
+
+            };
+            mAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
 

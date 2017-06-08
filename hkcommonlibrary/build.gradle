@@ -40,4 +40,5 @@ dependencies {
 
     compile 'com.google.android.exoplayer:exoplayer'
     compile 'com.github.feeeei:CircleSeekbar'
+    compile 'com.github.HaarigerHarald:android-youtubeExtractor'
 }
