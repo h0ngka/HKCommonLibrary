@@ -19,6 +19,9 @@ ExoPlayer
 - https://github.com/google/ExoPlayer
 - https://google.github.io/ExoPlayer
 - https://codelabs.developers.google.com/codelabs/exoplayer-intro/#0
+- http://d2.naver.com/helloworld/7122
+- http://blog.naver.com/memo/MemologPostView.nhn?blogId=shockrave&logNo=220880903306
+- http://blog.leedoing.com/57
 
 기타 dependency
 - https://github.com/feeeei/CircleSeekbar
