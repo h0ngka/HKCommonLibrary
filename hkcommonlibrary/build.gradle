@@ -25,6 +25,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
+
 dependencies {
     compileDefault project
     compile files('libs/YouTubeAndroidPlayerApi.jar')
