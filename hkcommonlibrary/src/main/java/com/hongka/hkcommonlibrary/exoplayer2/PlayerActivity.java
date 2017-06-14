@@ -1,7 +1,9 @@
 package com.hongka.hkcommonlibrary.exoplayer2;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -767,10 +769,20 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        if (playbackState == ExoPlayer.STATE_ENDED) {
+        if (playbackState == ExoPlayer.STATE_BUFFERING) {
+            showProgress(true, null);
+        }
+        else if (playbackState == ExoPlayer.STATE_READY) {
+            showProgress(false, null);
+        }
+        else if (playbackState == ExoPlayer.STATE_ENDED) {
             showControls();
             needRetrySource = true;
         }
+        else if (playbackState == ExoPlayer.STATE_IDLE) {
+
+        }
+
         updateButtonVisibilities();
     }
 
@@ -920,5 +932,42 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
             cause = cause.getCause();
         }
         return false;
+    }
+
+    private ProgressDialog mProgressDialog;
+    private void showProgress(boolean enable, String message) {
+        if (enable) {
+            if (mProgressDialog == null) {
+                mProgressDialog = new ProgressDialog(PlayerActivity.this);
+                mProgressDialog.getWindow().setDimAmount(0);
+                mProgressDialog.setMessage(TextUtils.isEmpty(message) ? "Loading..." : message);
+                mProgressDialog.setCanceledOnTouchOutside(false);
+                mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        if (dialogInterface != null) {
+                            dialogInterface.dismiss();
+                        }
+                    }
+                });
+            }
+
+            if (!mProgressDialog.isShowing()) {
+                try {
+                    mProgressDialog.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            if (mProgressDialog != null) {
+                try {
+                    mProgressDialog.dismiss();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                mProgressDialog = null;
+            }
+        }
     }
 }
