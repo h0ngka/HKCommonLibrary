@@ -616,6 +616,10 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
                             new YouTubeExtractor(PlayerActivity.this) {
                                 @Override
                                 protected void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta videoMeta) {
+                                    if (ytFiles == null) {
+                                        return;
+                                    }
+
                                     String playUrl = null;
                                     for (int j = 0, itag; j < ytFiles.size(); j++) {
                                         itag = ytFiles.keyAt(j);
@@ -650,7 +654,10 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
                     super.onPostExecute(aVoid);
 
                     if (Util.maybeRequestReadExternalStoragePermission(PlayerActivity.this, uris)) {
-                        // The player will be reinitialized if the permission is granted.
+                        return;
+                    }
+
+                    if (player == null) {
                         return;
                     }
 
