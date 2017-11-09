@@ -35,3 +35,5 @@ dependencies {
     compile 'com.github.feeeei:CircleSeekbar'
     compile 'com.github.HaarigerHarald:android-youtubeExtractor'
 }
+
+apply from: 'static_analysis.gradle'

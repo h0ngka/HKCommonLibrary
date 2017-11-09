@@ -1,0 +1,54 @@
+apply plugin: 'findbugs'
+apply plugin: 'pmd'
+
+findbugs {
+    ignoreFailures = true
+    effort = "max"
+    reportLevel = "low"
+    excludeFilter = new File("$rootProject.rootDir/findbugs/findbugs-filter.xml")
+}
+
+task findbugs(type: FindBugs, dependsOn: "assemble", group: 'verification') {
+
+    classes = files("$projectDir.absolutePath/build/intermediates/classes")
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+
+    reports {
+        // FindBugs tasks can only have one report enabled
+        xml.enabled = false
+        html.enabled = !xml.enabled
+        xml {
+            destination file("$project.buildDir/outputs/findbugs/findbugs-library-output.xml")
+        }
+        html {
+            destination file("$project.buildDir/outputs/findbugs/findbugs-library-output.html")
+        }
+    }
+
+    classpath = files()
+}
+
+pmd {
+    ignoreFailures = true
+    ruleSetFiles = files("$rootProject.rootDir/pmd/pmd-ruleset.xml")
+    ruleSets = []
+}
+
+task pmd(type: Pmd, group: 'verification') {
+    source 'src'
+    include '**/*.java'
+    exclude('**/gen/**', '**/debug/**')
+
+    reports {
+        xml.enabled = false
+        html.enabled = !xml.enabled
+        xml {
+            destination file("$project.buildDir/outputs/pmd/pmd-sample-output.xml")
+        }
+        html {
+            destination file("$project.buildDir/outputs/pmd/pmd-sample-output.html")
+        }
+    }
+}
