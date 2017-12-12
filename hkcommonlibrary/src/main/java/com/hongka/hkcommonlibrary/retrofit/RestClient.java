@@ -1,11 +1,9 @@
 package com.hongka.hkcommonlibrary.retrofit;
 
-import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.hongka.hkcommonlibrary.BuildConfig;
-import com.hongka.hkcommonlibrary.HKApplication;
 
 import java.util.Collections;
 import java.util.List;
@@ -73,9 +71,9 @@ public class RestClient {
         }
 //        builder = addCustomInterceptor(builder);
 
-        if (HKApplication.isDebugBuild()) {
-            builder.addNetworkInterceptor(new StethoInterceptor());
-        }
+//        if (HKApplication.isDebugBuild()) {
+//            builder.addNetworkInterceptor(new StethoInterceptor());
+//        }
 
         mOkHttpClient = builder.build();
 
